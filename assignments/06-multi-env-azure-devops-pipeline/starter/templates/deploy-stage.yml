@@ -1,0 +1,84 @@
+# ==============================================================================
+# Reusable Stage Template: Deploy Environment
+# ==============================================================================
+parameters:
+  - name: environmentName
+    type: string
+  - name: stageDisplayName
+    type: string
+  - name: azureServiceConnection
+    type: string
+  - name: resourceGroupName
+    type: string
+  - name: location
+    type: string
+    default: 'eastus'
+  - name: bicepFilePath
+    type: string
+  - name: bicepparamFile
+    type: string
+  - name: dependsOnStages
+    type: object
+    default: []
+
+stages:
+  - stage: Deploy_${{ parameters.environmentName }}
+    displayName: ${{ parameters.stageDisplayName }}
+    dependsOn: ${{ parameters.dependsOnStages }}
+    condition: succeeded()
+    jobs:
+      - deployment: DeployBicep
+        displayName: 'Deploy Bicep to ${{ parameters.environmentName }}'
+        pool:
+          vmImage: 'ubuntu-latest'
+        environment: ${{ parameters.environmentName }}
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - checkout: self
+
+                # TASK 1A: Ensure Target Resource Group Exists
+                # TODO: Add AzureCLI@2 task to run:
+                # az group create --name ${{ parameters.resourceGroupName }} --location ${{ parameters.location }}
+                - task: AzureCLI@2
+                  displayName: 'Ensure Resource Group Exists'
+                  inputs:
+                    azureSubscription: ${{ parameters.azureServiceConnection }}
+                    scriptType: 'bash'
+                    scriptLocation: 'inlineScript'
+                    inlineScript: |
+                      echo "Creating/verifying resource group ${{ parameters.resourceGroupName }}..."
+                      az group create --name ${{ parameters.resourceGroupName }} --location ${{ parameters.location }}
+
+                # TASK 1B: Run What-If Analysis
+                # TODO: Add AzureCLI@2 task to run:
+                # az deployment group what-if \
+                #   --resource-group ${{ parameters.resourceGroupName }} \
+                #   --template-file ${{ parameters.bicepFilePath }} \
+                #   --parameters ${{ parameters.bicepparamFile }}
+                - task: AzureCLI@2
+                  displayName: 'Preview Deployment (What-If)'
+                  inputs:
+                    azureSubscription: ${{ parameters.azureServiceConnection }}
+                    scriptType: 'bash'
+                    scriptLocation: 'inlineScript'
+                    inlineScript: |
+                      echo "Running what-if preview for ${{ parameters.environmentName }}..."
+                      # TODO: Fill in the az deployment group what-if command
+
+                # TASK 1C: Execute Deployment
+                # TODO: Add AzureCLI@2 task to run:
+                # az deployment group create \
+                #   --resource-group ${{ parameters.resourceGroupName }} \
+                #   --template-file ${{ parameters.bicepFilePath }} \
+                #   --parameters ${{ parameters.bicepparamFile }}
+                - task: AzureCLI@2
+                  displayName: 'Deploy Bicep Infrastructure'
+                  inputs:
+                    azureSubscription: ${{ parameters.azureServiceConnection }}
+                    scriptType: 'bash'
+                    scriptLocation: 'inlineScript'
+                    inlineScript: |
+                      echo "Deploying to ${{ parameters.resourceGroupName }}..."
+                      # TODO: Fill in the az deployment group create command

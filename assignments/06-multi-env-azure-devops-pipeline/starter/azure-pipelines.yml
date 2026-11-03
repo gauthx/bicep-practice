@@ -1,0 +1,74 @@
+# ==============================================================================
+# Multi-Stage Azure DevOps CI/CD Pipeline
+# ==============================================================================
+trigger:
+  branches:
+    include:
+      - main
+  paths:
+    include:
+      - 'assignments/04-production-paas-networking/**'
+
+variables:
+  bicepFilePath: 'assignments/04-production-paas-networking/solution/main.bicep'
+  azureServiceConnection: 'sc-azure-subscription'
+  location: 'eastus'
+
+stages:
+  # ============================================================================
+  # STAGE 1: Lint & Validate
+  # ============================================================================
+  - stage: Lint_And_Validate
+    displayName: 'Lint & Validate Bicep'
+    jobs:
+      - job: ValidateBicep
+        displayName: 'Compile and Lint'
+        pool:
+          vmImage: 'ubuntu-latest'
+        steps:
+          - checkout: self
+
+          - script: |
+              echo "==> Compiling Bicep template: $(bicepFilePath)"
+              az bicep build --file $(bicepFilePath)
+            displayName: 'Compile Bicep Template (az bicep build)'
+
+  # ============================================================================
+  # STAGE 2: Deploy to Development
+  # ============================================================================
+  # TODO: Call template 'templates/deploy-stage.yml'
+  # Pass parameters:
+  #   environmentName: 'dev'
+  #   stageDisplayName: 'Deploy to Development'
+  #   azureServiceConnection: $(azureServiceConnection)
+  #   resourceGroupName: 'rg-bicep-paas-dev'
+  #   location: $(location)
+  #   bicepFilePath: $(bicepFilePath)
+  #   bicepparamFile: 'assignments/04-production-paas-networking/solution/dev.bicepparam'
+  #   dependsOnStages: ['Lint_And_Validate']
+
+  - template: templates/deploy-stage.yml
+    parameters:
+      environmentName: 'dev'
+      stageDisplayName: 'Deploy to Development'
+      azureServiceConnection: $(azureServiceConnection)
+      resourceGroupName: 'rg-bicep-paas-dev'
+      location: $(location)
+      bicepFilePath: $(bicepFilePath)
+      bicepparamFile: 'assignments/04-production-paas-networking/solution/dev.bicepparam'
+      dependsOnStages:
+        - Lint_And_Validate
+
+  # ============================================================================
+  # STAGE 3: Deploy to Production (Gated by Environment Approval)
+  # ============================================================================
+  # TODO: Call template 'templates/deploy-stage.yml'
+  # Pass parameters:
+  #   environmentName: 'prod'
+  #   stageDisplayName: 'Deploy to Production'
+  #   azureServiceConnection: $(azureServiceConnection)
+  #   resourceGroupName: 'rg-bicep-paas-prod'
+  #   location: $(location)
+  #   bicepFilePath: $(bicepFilePath)
+  #   bicepparamFile: 'assignments/04-production-paas-networking/solution/prod.bicepparam'
+  #   dependsOnStages: ['Deploy_dev']
