@@ -28,6 +28,9 @@ resource appConfig 'Microsoft.AppConfiguration/configurationStores@2024-05-01' =
   sku: {
     name: sku
   }
+  properties: {
+    publicNetworkAccess: 'Enabled'
+  }
 }
 
 // ============================================================================

@@ -42,7 +42,34 @@ resource nsg 'Microsoft.Network/networkSecurityGroups@2024-05-01' = {
   location: location
   properties: {
     securityRules: [
-      // TODO: Place your security rules here
+      {
+        id: 'AllowFrontDoorInbound'
+        name: 'AllowFrontDoorInbound'
+        properties: {
+          priority: 100
+          protocol: 'Tcp'
+          access: 'Allow'
+          direction: 'Inbound'
+          sourceAddressPrefix: 'AzureFrontDoor.Backend'
+          sourcePortRange: '*'
+          destinationAddressPrefix: 'VirtualNetwork'
+          destinationPortRange: '443'
+        }
+      }
+      {
+        id: 'DenyAllInternetInbound'
+        name: 'DenyAllInternetInbound'
+        properties: {
+          priority: 4000
+          protocol: '*'
+          access: 'Deny'
+          direction: 'Inbound'
+          sourceAddressPrefix: 'Internet'
+          sourcePortRange: '*'
+          destinationAddressPrefix: '*'
+          destinationPortRange: '*'
+        }
+      }
     ]
   }
 }
@@ -71,7 +98,7 @@ resource vnet 'Microsoft.Network/virtualNetworks@2024-05-01' = {
   properties: {
     addressSpace: {
       addressPrefixes: [
-        // TODO: Pass vnetAddressPrefix
+      vnetAddressPrefix
       ]
     }
     subnets: [
@@ -79,7 +106,17 @@ resource vnet 'Microsoft.Network/virtualNetworks@2024-05-01' = {
         name: appSubnetName
         properties: {
           addressPrefix: appSubnetPrefix
-          // TODO: Attach NSG and add delegation
+          networkSecurityGroup: {
+            id: nsg.id
+          }
+          delegations:[
+            {
+              name: 'appServiceDelegation'
+              properties: {
+                serviceName: 'Microsoft.Web/serverFarms'
+              }
+            }
+          ]
         }
       }
     ]

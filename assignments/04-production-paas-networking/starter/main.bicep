@@ -28,53 +28,69 @@ var frontDoorEndpointName = 'fde-${environment}-${uniqueSuffix}'
 // ============================================================================
 // TASK 5A: Network Module
 // ============================================================================
+// TODO: Instantiate 'modules/network.bicep' with symbolic name 'network'.
+// Pass params:
+//   vnetName: vnetName
+//   vnetAddressPrefix: vnetAddressPrefix
+//   appSubnetName: 'snet-app-${environment}'
+//   appSubnetPrefix: appSubnetPrefix
+//   location: location
+
 module network 'modules/network.bicep' = {
   name: 'networkDeployment-${environment}'
   params: {
-    vnetName: vnetName
-    vnetAddressPrefix: vnetAddressPrefix
-    appSubnetName: 'snet-app-${environment}'
-    appSubnetPrefix: appSubnetPrefix
-    location: location
+    // TODO: Wire parameters
   }
 }
 
 // ============================================================================
 // TASK 5B: App Configuration Module
 // ============================================================================
+// TODO: Instantiate 'modules/appconfig.bicep' with symbolic name 'appConfig'.
+// Pass params:
+//   appConfigName: appConfigName
+//   environment: environment
+//   sku: environment == 'prod' ? 'standard' : 'free'
+//   location: location
+
 module appConfig 'modules/appconfig.bicep' = {
   name: 'appConfigDeployment-${environment}'
   params: {
-    appConfigName: appConfigName
-    environment: environment
-    sku: environment == 'prod' ? 'standard' : 'free'
-    location: location
+    // TODO: Wire parameters
   }
 }
 
 // ============================================================================
 // TASK 5C: Compute Module (App Service & Function App)
 // ============================================================================
+// TODO: Instantiate 'modules/compute.bicep' with symbolic name 'compute'.
+// Pass params:
+//   baseName: baseComputeName
+//   skuName: appServicePlanSku
+//   subnetId: network.outputs.appSubnetId  <-- Notice the cross-module dependency!
+//   appConfigEndpoint: appConfig.outputs.appConfigEndpoint
+//   location: location
+
 module compute 'modules/compute.bicep' = {
   name: 'computeDeployment-${environment}'
   params: {
-    baseName: baseComputeName
-    skuName: appServicePlanSku
-    subnetId: network.outputs.appSubnetId
-    appConfigEndpoint: appConfig.outputs.appConfigEndpoint
-    location: location
+    // TODO: Wire parameters
   }
 }
 
 // ============================================================================
 // TASK 5D: Azure Front Door Module
 // ============================================================================
+// TODO: Instantiate 'modules/frontdoor.bicep' with symbolic name 'frontDoor'.
+// Pass params:
+//   profileName: frontDoorProfileName
+//   endpointName: frontDoorEndpointName
+//   webAppHostName: compute.outputs.webAppDefaultHostName  <-- Routes traffic to your Web App!
+
 module frontDoor 'modules/frontdoor.bicep' = {
   name: 'frontDoorDeployment-${environment}'
   params: {
-    profileName: frontDoorProfileName
-    endpointName: frontDoorEndpointName
-    webAppHostName: compute.outputs.webAppDefaultHostName
+    // TODO: Wire parameters
   }
 }
 
