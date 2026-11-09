@@ -35,7 +35,7 @@ resource appServicePlan 'Microsoft.Web/serverfarms@2024-04-01' = {
   name: 'plan-${baseName}'
   location: location
   sku: {
-    // TODO: Configure sku name
+    name: skuName
   }
 }
 
@@ -54,7 +54,10 @@ resource webApp 'Microsoft.Web/sites@2024-04-01' = {
   name: 'app-${baseName}'
   location: location
   properties: {
-    // TODO: Link serverFarmId, httpsOnly, virtualNetworkSubnetId, and siteConfig.appSettings
+    httpsOnly: true
+    serverFarmId: appServicePlan.id
+    virtualNetworkSubnetId: subnetId
+    siteConfig: { appSettings: [{ name: 'APPCONFIG_ENDPOINT', value: appConfigEndpoint }] }
   }
 }
 
@@ -77,7 +80,10 @@ resource functionApp 'Microsoft.Web/sites@2024-04-01' = {
   location: location
   kind: 'functionapp'
   properties: {
-    // TODO: Link serverFarmId, httpsOnly, virtualNetworkSubnetId, and siteConfig.appSettings
+    serverFarmId: appServicePlan.id
+    httpsOnly: true
+    virtualNetworkSubnetId: subnetId
+    siteConfig: { appSettings: [{ name: 'APPCONFIG_ENDPOINT', value: appConfigEndpoint }] }
   }
 }
 

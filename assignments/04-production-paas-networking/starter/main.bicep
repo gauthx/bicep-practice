@@ -39,7 +39,11 @@ var frontDoorEndpointName = 'fde-${environment}-${uniqueSuffix}'
 module network 'modules/network.bicep' = {
   name: 'networkDeployment-${environment}'
   params: {
-    // TODO: Wire parameters
+    vnetName: vnetName
+    vnetAddressPrefix: vnetAddressPrefix
+    appSubnetName: 'snet-app-${environment}'
+    appSubnetPrefix: appSubnetPrefix
+    location: location 
   }
 }
 
@@ -56,7 +60,10 @@ module network 'modules/network.bicep' = {
 module appConfig 'modules/appconfig.bicep' = {
   name: 'appConfigDeployment-${environment}'
   params: {
-    // TODO: Wire parameters
+    appConfigName: appConfigName
+    environment: environment
+    sku: environment == 'prod' ? 'standard' : 'free'
+    location: location  
   }
 }
 
@@ -74,7 +81,11 @@ module appConfig 'modules/appconfig.bicep' = {
 module compute 'modules/compute.bicep' = {
   name: 'computeDeployment-${environment}'
   params: {
-    // TODO: Wire parameters
+    baseName: baseComputeName
+    skuName: appServicePlanSku
+    subnetId: network.outputs.appSubnetId
+    appConfigEndpoint: appConfig.outputs.appConfigEndpoint
+    location: location
   }
 }
 
@@ -90,7 +101,9 @@ module compute 'modules/compute.bicep' = {
 module frontDoor 'modules/frontdoor.bicep' = {
   name: 'frontDoorDeployment-${environment}'
   params: {
-    // TODO: Wire parameters
+    profileName: frontDoorProfileName
+    endpointName: frontDoorEndpointName
+    webAppHostName: compute.outputs.webAppDefaultHostName
   }
 }
 

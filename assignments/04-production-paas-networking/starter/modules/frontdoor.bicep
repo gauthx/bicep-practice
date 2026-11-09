@@ -19,7 +19,7 @@ resource afdProfile 'Microsoft.Cdn/profiles@2024-02-01' = {
   name: profileName
   location: 'global'
   sku: {
-    // TODO: Set SKU name
+    name: 'Standard_AzureFrontDoor'
   }
 }
 
@@ -38,7 +38,7 @@ resource afdEndpoint 'Microsoft.Cdn/profiles/afdEndpoints@2024-02-01' = {
   name: endpointName
   location: 'global'
   properties: {
-    // TODO: Set enabledState
+    enabledState:'Enabled'
   }
 }
 
@@ -67,7 +67,8 @@ resource originGroup 'Microsoft.Cdn/profiles/originGroups@2024-02-01' = {
   parent: afdProfile
   name: 'default-origin-group'
   properties: {
-    // TODO: Configure loadBalancingSettings and healthProbeSettings
+    loadBalancingSettings:{sampleSize:4, successfulSamplesRequired:3}
+    healthProbeSettings:{probePath:'/', probeRequestType:'HEAD', probeProtocol:'Https', probeIntervalInSeconds:100}
   }
 }
 
@@ -75,6 +76,13 @@ resource webAppOrigin 'Microsoft.Cdn/profiles/originGroups/origins@2024-02-01' =
   parent: originGroup
   name: 'webapp-origin'
   properties: {
+    hostName: webAppHostName
+    httpPort:80
+    httpsPort: 443
+    originHostHeader: webAppHostName
+    priority:1
+    weight: 1000
+    enforceCertificateNameCheck: true
     // TODO: Configure origin hostName, ports, and originHostHeader
   }
 }
@@ -98,7 +106,12 @@ resource route 'Microsoft.Cdn/profiles/afdEndpoints/routes@2024-02-01' = {
   parent: afdEndpoint
   name: 'default-route'
   properties: {
-    // TODO: Configure route properties
+    originGroup:{id:originGroup.id}
+    supportedProtocols:['Https']
+    patternsToMatch:['/*']
+    forwardingProtocol:'HttpsOnly'
+    linkToDefaultDomain:'Enabled'
+    httpsRedirect:'Enabled'
   }
 }
 
